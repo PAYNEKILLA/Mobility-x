@@ -1,4 +1,4 @@
-﻿import { prisma } from "../../../../lib/prisma";
+import { prisma } from "../../../../lib/prisma";
 
 function distanceKm(
   latitude1: number,
@@ -30,6 +30,14 @@ export async function GET() {
     const matches = await prisma.match.findMany({
       where: {
         status: "offered",
+        delivery: {
+          status: {
+            in: [
+              "matching",
+              "offered",
+            ],
+          },
+        },
       },
       orderBy: {
         createdAt: "desc",

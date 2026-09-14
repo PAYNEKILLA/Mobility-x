@@ -12,7 +12,7 @@ type OfferedMatch = {
   routeCompatibility: number;
   timeCompatibility: number;
   detourDistanceKm: number;
-    estimatedExtraMinutes: number;
+  estimatedExtraMinutes: number;
   tripDistanceKm: number | null;
   status: string;
   delivery: {
@@ -46,7 +46,9 @@ type OfferedMatch = {
 
 export default function EarnPage() {
   const [status, setStatus] =
-    useState<"loading" | "ready" | "accepted" | "empty" | "error">("loading");
+    useState<"loading" | "ready" | "accepted" | "empty" | "error">(
+      "loading",
+    );
 
   const [offeredMatch, setOfferedMatch] =
     useState<OfferedMatch | null>(null);
@@ -72,10 +74,7 @@ export default function EarnPage() {
         setOfferedMatch(firstMatch);
         setStatus("ready");
       } catch (error) {
-        console.error(
-          "Failed to load offered match:",
-          error,
-        );
+        console.error("Failed to load offered match:", error);
         setStatus("error");
       }
     }
@@ -86,14 +85,12 @@ export default function EarnPage() {
   const estimatedEarnings = offeredMatch
     ? calculateEarnings({
         baseFare: 1000,
-        distanceKm:
-          offeredMatch.detourDistanceKm === 0
-            ? 10
-            : offeredMatch.detourDistanceKm,
+        distanceKm: offeredMatch.tripDistanceKm ?? 0,
         detourDistanceKm: offeredMatch.detourDistanceKm,
         packageWeightKg: offeredMatch.delivery.package.weightKg,
       })
     : null;
+
   return (
     <main className="min-h-screen bg-white text-slate-950">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6">
@@ -166,11 +163,17 @@ export default function EarnPage() {
                   </p>
 
                   <h3 className="mt-2 text-2xl font-bold">
-                    {offeredMatch ? `${offeredMatch.trip?.originAddress ?? "Unknown"} -> ${offeredMatch.trip?.destinationAddress ?? "Unknown"}` : "Loading trip..."}
+                    {offeredMatch
+                      ? `${offeredMatch.trip?.originAddress ?? "Unknown"} -> ${
+                          offeredMatch.trip?.destinationAddress ?? "Unknown"
+                        }`
+                      : "Loading trip..."}
                   </h3>
 
                   <p className="mt-2 text-slate-600">
-                    {offeredMatch?.trip ? `${offeredMatch.trip.vehicle.type} - ${offeredMatch.trip.availablePackageCount} package spaces - Up to ${offeredMatch.trip.availableWeightKg} kg` : "Trip details unavailable"}
+                    {offeredMatch?.trip
+                      ? `${offeredMatch.trip.vehicle.type} - ${offeredMatch.trip.availablePackageCount} package spaces - Up to ${offeredMatch.trip.availableWeightKg} kg`
+                      : "Trip details unavailable"}
                   </p>
                 </div>
 
@@ -182,18 +185,27 @@ export default function EarnPage() {
                 </div>
               </div>
 
-              <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
                 <div className="rounded-2xl bg-white p-5">
                   <p className="text-sm text-slate-500">Route</p>
-                  <p className="mt-1 font-semibold capitalize">
+                  <p className="mt-1 font-semibold">
                     {offeredMatch?.routeCompatibility ?? 0}%
                   </p>
                 </div>
 
                 <div className="rounded-2xl bg-white p-5">
                   <p className="text-sm text-slate-500">Time</p>
-                  <p className="mt-1 font-semibold capitalize">
+                  <p className="mt-1 font-semibold">
                     {offeredMatch?.timeCompatibility ?? 0}%
+                  </p>
+                </div>
+
+                <div className="rounded-2xl bg-white p-5">
+                  <p className="text-sm text-slate-500">Trip distance</p>
+                  <p className="mt-1 font-semibold">
+                    {offeredMatch?.tripDistanceKm != null
+                      ? `${offeredMatch.tripDistanceKm.toFixed(1)} km`
+                      : "Unavailable"}
                   </p>
                 </div>
 
@@ -207,7 +219,8 @@ export default function EarnPage() {
                 <div className="rounded-2xl bg-white p-5">
                   <p className="text-sm text-slate-500">Vehicle</p>
                   <p className="mt-1 font-semibold capitalize">
-                    {offeredMatch?.trip?.vehicle.verificationStatus ?? "unknown"}
+                    {offeredMatch?.trip?.vehicle.verificationStatus ??
+                      "unknown"}
                   </p>
                 </div>
               </div>
@@ -217,18 +230,52 @@ export default function EarnPage() {
                   <p className="text-sm text-slate-500">
                     Estimated earnings
                   </p>
+
                   <p className="text-3xl font-bold">
-                    {estimatedEarnings?.partnerEarnings?.toLocaleString() ?? "0"}
+                    {estimatedEarnings?.partnerEarnings?.toLocaleString() ??
+                      "0"}
                   </p>
                 </div>
 
                 <button
                   type="button"
                   disabled={false}
-                  onClick={async () => { if (!offeredMatch) return; try { const response = await fetch("/api/matches/accept", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ matchId: offeredMatch.id }) }); const data = await response.json(); if (!response.ok || !data.success) { setStatus("error"); return; } setStatus("accepted"); } catch (error) { console.error("Failed to accept opportunity:", error); setStatus("error"); } }}
+                  onClick={async () => {
+                    if (!offeredMatch) return;
+
+                    try {
+                      const response = await fetch(
+                        "/api/matches/accept",
+                        {
+                          method: "POST",
+                          headers: {
+                            "Content-Type": "application/json",
+                          },
+                          body: JSON.stringify({
+                            matchId: offeredMatch.id,
+                          }),
+                        },
+                      );
+
+                      const data = await response.json();
+
+                      if (!response.ok || !data.success) {
+                        setStatus("error");
+                        return;
+                      }
+
+                      setStatus("accepted");
+                    } catch (error) {
+                      console.error(
+                        "Failed to accept opportunity:",
+                        error,
+                      );
+                      setStatus("error");
+                    }
+                  }}
                   className="rounded-xl bg-slate-950 px-7 py-4 font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  "Accept opportunity"
+                  Accept opportunity
                 </button>
               </div>
             </div>
@@ -238,4 +285,3 @@ export default function EarnPage() {
     </main>
   );
 }
-
