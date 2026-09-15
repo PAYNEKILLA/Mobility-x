@@ -29,13 +29,22 @@ export async function GET() {
   try {
     const matches = await prisma.match.findMany({
       where: {
-        status: "offered",
+        status: {
+          in: ["offered", "accepted"],
+        },
         delivery: {
           status: {
             in: [
-              "matching",
               "offered",
+              "accepted",
+              "pickup_pending",
+              "picked_up",
+              "in_transit",
+              "near_destination",
             ],
+          },
+          paymentStatus: {
+            not: "released",
           },
         },
       },
@@ -83,14 +92,14 @@ export async function GET() {
     });
   } catch (error) {
     console.error(
-      "Get offered matches failed:",
+      "Get active carrier matches failed:",
       error,
     );
 
     return Response.json(
       {
         success: false,
-        message: "Failed to retrieve offered matches.",
+        message: "Failed to retrieve active carrier matches.",
       },
       { status: 500 },
     );

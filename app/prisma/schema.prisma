@@ -8,18 +8,19 @@ datasource db {
 }
 
 model User {
-  id                 String        @id @default(cuid())
-  role               String
-  name               String
-  email              String?       @unique
-  phone              String?
-  verificationStatus String        @default("pending")
-  createdAt          DateTime      @default(now())
-  deliveries         Delivery[]
-  payments           Payment[]
-  transactions       Transaction[]
-  trips              Trip[]
-  vehicles           Vehicle[]
+  id                    String                 @id @default(cuid())
+  role                  String
+  name                  String
+  email                 String?                @unique
+  phone                 String?
+  verificationStatus    String                 @default("pending")
+  createdAt             DateTime               @default(now())
+  deliveries            Delivery[]
+  payments              Payment[]
+  transactions          Transaction[]
+  trips                 Trip[]
+  vehicles              Vehicle[]
+  deliveryConfirmations DeliveryConfirmation[]
 }
 
 model Vehicle {
@@ -48,7 +49,7 @@ model Package {
 }
 
 model Delivery {
-  id                   String        @id @default(cuid())
+  id                   String                @id @default(cuid())
   customerId           String
   packageId            String
   pickupAddress        String
@@ -58,18 +59,31 @@ model Delivery {
   destinationLatitude  Float
   destinationLongitude Float
   option               String
-  status               String        @default("draft")
-  paymentStatus        String        @default("pending")
+  status               String                @default("draft")
+  paymentStatus        String                @default("pending")
   requestedPickupTime  DateTime?
   deliveryDeadline     DateTime?
   estimatedPrice       Float?
-  currency             String        @default("NGN")
-  createdAt            DateTime      @default(now())
-  customer             User          @relation(fields: [customerId], references: [id])
-  package              Package       @relation(fields: [packageId], references: [id])
+  currency             String                @default("NGN")
+  createdAt            DateTime              @default(now())
+  customer             User                  @relation(fields: [customerId], references: [id])
+  package              Package               @relation(fields: [packageId], references: [id])
   matches              Match[]
   payments             Payment[]
   transactions         Transaction[]
+  confirmation         DeliveryConfirmation?
+}
+
+model DeliveryConfirmation {
+  id          String   @id @default(cuid())
+  deliveryId  String   @unique
+  customerId  String
+  confirmedAt DateTime @default(now())
+
+  delivery Delivery @relation(fields: [deliveryId], references: [id])
+  customer User     @relation(fields: [customerId], references: [id])
+
+  @@index([customerId])
 }
 
 model Trip {
