@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import {
   Suspense,
@@ -802,18 +802,24 @@ function PaymentPendingContent() {
               </button>
             )}
 
-          {isComplete && (
-            <div className="mt-8 rounded-2xl bg-slate-50 p-6 text-center">
-              <p className="font-semibold">
-                Mobility-X payment flow complete.
-              </p>
+         {isComplete && (
+  <div className="mt-8 rounded-2xl bg-slate-50 p-6 text-center">
+    <p className="font-semibold">
+      Mobility-X payment flow complete.
+    </p>
 
-              <p className="mt-2 text-sm text-slate-500">
-                The payment has moved through the complete escrow lifecycle.
-              </p>
-            </div>
-          )}
+    <p className="mt-2 text-sm text-slate-500">
+      The payment has moved through the complete escrow lifecycle.
+    </p>
 
+    <a
+      href={`/track?deliveryId=${encodeURIComponent(delivery.id)}`}
+      className="mt-6 block w-full rounded-xl bg-purple-600 px-6 py-4 text-center font-semibold text-white hover:bg-purple-700"
+    >
+      Track your delivery
+    </a>
+  </div>
+)}
           <a
             href="/"
             className="mt-4 block w-full rounded-xl border border-slate-200 px-6 py-4 text-center font-semibold hover:bg-slate-50"
