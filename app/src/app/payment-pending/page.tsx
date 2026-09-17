@@ -801,7 +801,7 @@ function PaymentPendingContent() {
                           : "Continue"}
               </button>
             )}
-
+            
          {isComplete && (
   <div className="mt-8 rounded-2xl bg-slate-50 p-6 text-center">
     <p className="font-semibold">
